@@ -10,8 +10,11 @@
 #define AVATAR_BLINK_OPEN   3200 // eyes-open stretch between blinks (ms)
 #define AVATAR_BLINK_SHUT   140  // blink duration (ms)
 
-// Vertically centred figure in the 32x128 logical canvas (ROTATION_270).
-#define AVATAR_TOP ((128 - (HEAD_H + BODY_H)) / 2)
+// Figure + name plate, vertically centred as a group in the 32x128 canvas.
+#define FIG_H      (HEAD_H + BODY_H)
+#define NAME_GAP   4
+#define AVATAR_TOP ((128 - (FIG_H + NAME_GAP + NAME_H)) / 2)
+#define NAME_TOP   (AVATAR_TOP + FIG_H + NAME_GAP)
 
 // Blit a 1bpp row-major (MSB-first) PROGMEM sprite at (x0,y0).
 static void blit(const uint8_t *sprite, uint8_t w, uint8_t h, uint8_t x0, uint8_t y0) {
@@ -68,6 +71,7 @@ static void render_avatar(void) {
     oled_clear();
     blit(head, AVATAR_W, HEAD_H, 0, AVATAR_TOP);
     blit(body, AVATAR_W, BODY_H, 0, AVATAR_TOP + HEAD_H);
+    blit(avatar_name, NAME_W, NAME_H, 0, NAME_TOP);  // あやめ
 }
 
 // ---- master status ----------------------------------------------------------

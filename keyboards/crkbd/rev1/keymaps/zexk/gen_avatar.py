@@ -9,7 +9,7 @@ best on a small mono panel.
 from PIL import Image, ImageDraw
 
 W = 32
-H = 38  # face sprite height (content fits; trailing blank rows trimmed)
+H = 42  # face sprite height
 
 def new():
     img = Image.new("1", (W, H), 0)
@@ -19,64 +19,70 @@ def px(d, x, y, v=1):
     if 0 <= x < W and 0 <= y < H:
         d.point((x, y), 1 if v else 0)
 
+# Silhouette style: the head is a SOLID white shape; eyes/mouth/blush are dark
+# cutouts (fill=0) with white sparkles. Bold and legible on a mono panel.
+# Bold hair as a solid white mass; the FACE is a dark cut-out framed by hair,
+# so the hairstyle reads as a real silhouette. Features are white on the dark face.
 def hair_and_head(d):
-    # head outline (rounded, slightly wider than tall for chibi look)
-    d.ellipse((3, 6, 28, 36), outline=1)
-    # bob hair cap: arc across the top, sitting just above the head ring
-    d.arc((2, 1, 29, 24), start=180, end=360, fill=1)
-    # side bangs (two short strokes framing the face)
-    d.line((4, 8, 6, 16), fill=1)
-    d.line((27, 8, 25, 16), fill=1)
-    # center bang split
-    d.line((16, 4, 16, 11), fill=1)
-    d.line((13, 5, 14, 11), fill=1)
-    d.line((19, 5, 18, 11), fill=1)
-    # ahoge (the signature anime cowlick)
-    d.line((16, 2, 19, 0), fill=1)
-    d.line((19, 0, 22, 2), fill=1)
+    d.ellipse((2, 3, 29, 40), fill=1)                       # solid hair mass
+    # ahoge cowlick, curling off to one side
+    d.polygon([(15, 4), (18, 0), (22, 0), (20, 4), (18, 6)], fill=1)
+    # carve the dark face
+    d.ellipse((6, 15, 25, 39), fill=0)
+    # spiky bang tips -- off-centre part, uneven lengths (asymmetry)
+    d.polygon([(6, 14), (8, 22), (11, 15)], fill=1)
+    d.polygon([(11, 15), (14, 26), (17, 15)], fill=1)       # long centre-left tip
+    d.polygon([(17, 15), (20, 20), (25, 14)], fill=1)       # shorter right
+    # side-locks: long flowing lock on the left, short on the right
+    d.polygon([(7, 16), (1, 38), (8, 31)], fill=1)
+    d.polygon([(24, 16), (28, 29), (23, 26)], fill=1)
+    # little star hair-clip on the right bang (asymmetric accent)
+    px(d, 21, 12, 0); px(d, 21, 13, 0); px(d, 21, 14, 0)
+    px(d, 20, 13, 0); px(d, 22, 13, 0)
 
 def blush(d):
-    px(d, 6, 26); px(d, 7, 26); px(d, 8, 25)
-    px(d, 25, 26); px(d, 24, 26); px(d, 23, 25)
+    # white blush ticks on the dark cheeks
+    for yy in (30, 31):
+        d.line((8, yy, 10, yy), fill=1)
+        d.line((21, yy, 23, yy), fill=1)
 
-def eyes_open(d, sparkle=True):
-    # big round eyes, filled, with a dark sparkle dot
-    d.ellipse((8, 18, 13, 25), fill=1)
-    d.ellipse((18, 18, 23, 25), fill=1)
-    if sparkle:
-        px(d, 9, 19, 0); px(d, 10, 20, 0)
-        px(d, 19, 19, 0); px(d, 20, 20, 0)
+def _eye_cut(d, cx, cy, rx, ry, star=False):
+    d.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=1)  # white eye on dark face
+    # dark pupil + a white catch-light so it reads shiny, not blank
+    d.ellipse((cx - rx + 2, cy - ry + 2, cx + rx - 1, cy + ry - 1), fill=0)
+    px(d, cx - 1, cy - 1, 1)
+    if star:
+        px(d, cx + 1, cy + 1, 1)
+
+def eyes_open(d):
+    _eye_cut(d, 11, 27, 3, 4)
+    _eye_cut(d, 20, 27, 3, 4)
 
 def eyes_excited(d):
-    # huge sparkly eyes (>_< energy but wide-open shiny)
-    d.ellipse((7, 16, 13, 25), fill=1)
-    d.ellipse((18, 16, 24, 25), fill=1)
-    # twin sparkle highlights
-    for (cx, cy) in ((9, 18), (19, 18)):
-        px(d, cx, cy, 0); px(d, cx + 1, cy, 0)
-        px(d, cx, cy + 1, 0)
-        px(d, cx + 2, cy + 2, 0)
+    _eye_cut(d, 11, 27, 4, 5, star=True)
+    _eye_cut(d, 20, 27, 4, 5, star=True)
 
 def eyes_happy(d):
-    # ^_^ closed-happy arcs
-    d.arc((7, 18, 14, 26), start=200, end=340, fill=1)
-    d.arc((18, 18, 25, 26), start=200, end=340, fill=1)
+    # winking: open shiny eye on the left, happy caret on the right
+    _eye_cut(d, 11, 27, 3, 4)
+    for off in (0, 1):
+        d.arc((17, 26 + off, 23, 32 + off), 200, 340, fill=1)
 
 def eyes_closed(d):
-    # gentle ^ closed line (blink / sleep) -- slightly flatter than happy
-    d.line((8, 22, 11, 21), fill=1); d.line((11, 21, 13, 22), fill=1)
-    d.line((19, 22, 22, 21), fill=1); d.line((22, 21, 24, 22), fill=1)
+    # relaxed downward lashes (u u)
+    for off in (0, 1):
+        d.arc((8, 26 + off, 14, 31 + off), 20, 160, fill=1)
+        d.arc((17, 26 + off, 23, 31 + off), 20, 160, fill=1)
 
 def mouth_cat(d):
-    # tiny w cat mouth
-    d.line((14, 30, 15, 31), fill=1); d.line((15, 31, 16, 30), fill=1)
-    d.line((16, 30, 17, 31), fill=1); d.line((17, 31, 18, 30), fill=1)
+    d.arc((13, 33, 16, 37), 20, 160, fill=1)
+    d.arc((16, 33, 19, 37), 20, 160, fill=1)
 
 def mouth_open(d):
-    d.ellipse((14, 29, 18, 33), outline=1)
+    d.ellipse((14, 33, 18, 38), fill=1)
 
 def mouth_smile(d):
-    d.arc((12, 27, 20, 33), start=20, end=160, fill=1)
+    d.arc((12, 33, 20, 39), 20, 160, fill=1)
 
 def zzz(d):
     # little floating z's above the head for sleep
@@ -116,29 +122,36 @@ def bpx(d, x, y, v=1):
         d.point((x, y), 1 if v else 0)
 
 def body_base(d):
-    # neck
-    d.line((15, 0, 15, 3), fill=1); d.line((17, 0, 17, 3), fill=1)
-    # collar
-    d.line((12, 4, 20, 4), fill=1)
-    # little collar V
-    d.line((14, 5, 16, 8), fill=1); d.line((16, 8, 18, 5), fill=1)
-    # clean bell-shaped dress: two side edges flaring to a simple hem
-    d.line((12, 4, 7, 24), fill=1)
-    d.line((20, 4, 25, 24), fill=1)
-    d.line((7, 24, 25, 24), fill=1)
-    # short legs + little feet poking out under the hem
-    d.line((13, 24, 13, 30), fill=1); d.line((19, 24, 19, 30), fill=1)
-    d.line((10, 30, 13, 30), fill=1); d.line((19, 30, 22, 30), fill=1)
+    # short neck
+    d.rectangle((14, 0, 17, 1), fill=1)
+    # solid A-line dress
+    d.polygon([(11, 3), (20, 3), (25, 23), (6, 23)], fill=1)
+    # round collar (dark notch under the neck)
+    d.arc((13, 1, 18, 6), 20, 160, fill=0)
+    # waist belt (dark) + a centre skirt pleat
+    d.line((10, 12, 21, 12), fill=0)
+    d.line((16, 13, 16, 22), fill=0)
+    # small ribbon bow on the skirt, off to one side (asymmetric flair)
+    d.line((9, 14, 12, 16), fill=0); d.line((9, 18, 12, 16), fill=0); d.line((9, 14, 9, 18), fill=0)
+    d.line((15, 14, 12, 16), fill=0); d.line((15, 18, 12, 16), fill=0); d.line((15, 14, 15, 18), fill=0)
+    # slim legs
+    d.rectangle((13, 23, 14, 28), fill=1)
+    d.rectangle((17, 23, 18, 28), fill=1)
+    # rounded shoes
+    d.rectangle((10, 28, 14, 31), fill=1); px(d, 9, 30); px(d, 9, 31)
+    d.rectangle((17, 28, 21, 31), fill=1); px(d, 22, 30); px(d, 22, 31)
 
 def arms_down(d):
-    # stubby arms resting along the dress
-    d.line((12, 5, 8, 17), fill=1); d.line((8, 17, 10, 19), fill=1)
-    d.line((20, 5, 24, 17), fill=1); d.line((24, 17, 22, 19), fill=1)
+    # short puff-sleeve stubs at the shoulders (part of the silhouette)
+    d.polygon([(11, 3), (7, 12), (12, 10)], fill=1)
+    d.polygon([(20, 3), (24, 12), (19, 10)], fill=1)
 
 def arms_up(d):
-    # \o/ raised arms for the excited cheer
-    d.line((12, 5, 6, 1), fill=1);  bpx(d, 5, 0); bpx(d, 6, 0)
-    d.line((20, 5, 26, 1), fill=1); bpx(d, 25, 0); bpx(d, 26, 0)
+    # arms raised in a cheer, with little round hands
+    d.line((11, 4, 7, 0), fill=1); d.line((12, 4, 8, 0), fill=1)
+    d.ellipse((5, 0, 8, 3), fill=1)
+    d.line((20, 4, 24, 0), fill=1); d.line((19, 4, 23, 0), fill=1)
+    d.ellipse((23, 0, 26, 3), fill=1)
 
 def b_idle():
     img, d = new_body(); body_base(d); arms_down(d); return img
@@ -156,6 +169,29 @@ BODIES = [
     ("idle",  b_idle()),
     ("cheer", b_cheer()),
 ]
+
+# ---- name plate: あやめ (Ayame, "iris") in the zpix pixel font ----
+NAME_TEXT = "あやめ"
+
+def _find_font():
+    import os, glob
+    p = os.environ.get("NAME_FONT")
+    if p and os.path.exists(p):
+        return p
+    for pat in ("/nix/store/*zpix*.ttf", "/nix/store/*zpix*/**/*.ttf"):
+        hits = glob.glob(pat, recursive=True)
+        if hits:
+            return hits[0]
+    raise SystemExit("zpix font not found; run in nix-shell -p zpix-pixel-font or set NAME_FONT")
+
+def name_image(size=10):
+    from PIL import ImageFont
+    f = ImageFont.truetype(_find_font(), size)
+    bbox = ImageDraw.Draw(Image.new("1", (1, 1))).textbbox((0, 0), NAME_TEXT, font=f)
+    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    img = Image.new("1", (W, th + 2), 0)
+    ImageDraw.Draw(img).text(((W - tw) // 2 - bbox[0], 1 - bbox[1]), NAME_TEXT, font=f, fill=1)
+    return img
 
 def preview(name, img):
     w, h = img.size
@@ -182,7 +218,50 @@ def pack(img):
 
 import sys
 ALL = [(f"head_{n}", i) for n, i in HEADS] + [(f"body_{n}", i) for n, i in BODIES]
-if "--emit" in sys.argv:
+
+def figure(mood):
+    """Compose the full standing figure for a mood (head over body)."""
+    combo = Image.new("1", (W, H + BH), 0)
+    combo.paste(dict(HEADS)[mood], (0, 0))
+    combo.paste(dict(BODIES)["cheer" if mood == "excited" else "idle"], (0, H))
+    return combo
+
+def panel(mood, nimg):
+    """The full 32x128 OLED panel: figure centred with the name plate beneath."""
+    fig_h = H + BH
+    gap = 4
+    group = fig_h + gap + nimg.height
+    top = (128 - group) // 2
+    pnl = Image.new("1", (W, 128), 0)
+    pnl.paste(figure(mood), (0, top))
+    pnl.paste(nimg, (0, top + fig_h + gap))
+    return pnl
+
+def render_png(path, scale=6):
+    """Each mood shown as the real 32x128 panel (white on black), upscaled."""
+    from PIL import ImageFont
+    moods = [n for n, _ in HEADS]
+    nimg = name_image()
+    pad, label_h = 14, 18
+    pw, ph = W * scale, 128 * scale
+    sheet = Image.new("RGB", (len(moods) * (pw + pad) + pad, ph + label_h + pad), (24, 24, 28))
+    d = ImageDraw.Draw(sheet)
+    try:
+        font = ImageFont.truetype("DejaVuSans.ttf", 12)
+    except Exception:
+        font = ImageFont.load_default()
+    for i, mood in enumerate(moods):
+        big = panel(mood, nimg).convert("L").resize((pw, ph), Image.NEAREST).convert("RGB")
+        x = pad + i * (pw + pad)
+        d.rectangle((x - 1, label_h - 1, x + pw, label_h + ph), outline=(70, 70, 80))
+        sheet.paste(big, (x, label_h))
+        d.text((x, 2), mood, fill=(220, 200, 240), font=font)
+    sheet.save(path)
+    print(f"wrote {path} ({sheet.size[0]}x{sheet.size[1]})")
+
+if "--png" in sys.argv:
+    render_png(sys.argv[sys.argv.index("--png") + 1] if len(sys.argv) > sys.argv.index("--png") + 1 else "avatar_preview.png")
+elif "--emit" in sys.argv:
     print("// Generated by gen_avatar.py -- chibi anime mascot for a vertically-mounted")
     print("// Corne OLED (slave half, OLED_ROTATION_270 => 32 wide x 128 tall logical).")
     print("// Sprites are 1bpp, row-major, MSB-first. Head stacks on top of body.")
@@ -194,7 +273,13 @@ if "--emit" in sys.argv:
         data = pack(img)
         body = ", ".join(f"0x{b:02X}" for b in data)
         print(f"static const uint8_t PROGMEM avatar_{name}[{len(data)}] = {{ {body} }};")
-    print(f"// total sprite bytes: {sum(len(pack(i)) for _, i in ALL)}")
+    nm = name_image()
+    nd = pack(nm)
+    print(f"// name plate: {NAME_TEXT} (Ayame = iris)")
+    print(f"#define NAME_W {nm.width}")
+    print(f"#define NAME_H {nm.height}")
+    print(f"static const uint8_t PROGMEM avatar_name[{len(nd)}] = {{ {', '.join(f'0x{b:02X}' for b in nd)} }};")
+    print(f"// total sprite bytes: {sum(len(pack(i)) for _, i in ALL) + len(nd)}")
 else:
     # stack each head over the idle body for a full-figure preview
     for hn, himg in HEADS:
