@@ -4,7 +4,7 @@
 static void render_logo(void) {
   static const char PROGMEM logo[] = {
     };
-    oled_write_raw_P(logo, false);
+    oled_write_raw_P(logo, sizeof(logo));
 }
 
 static void render_status(void) {
@@ -34,11 +34,6 @@ static void render_status(void) {
             oled_write_ln(" und", false);
             break;
         }
-
-  static const char PROGMEM tux[] = {
-        0x99, 0x9A, 0xB9, 0xBA
-    };
-    oled_write_raw(tux, false);
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
