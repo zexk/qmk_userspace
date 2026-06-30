@@ -20,8 +20,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         //|--------+--------+--------+--------+--------+--------|    |--------+--------+--------+--------+--------+--------|
         KC_ESC,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,         KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_BSPC,
         //|--------+--------+--------+--------+--------+--------|    |--------+--------+--------+--------+--------+--------|
-        // oxwm tags: tap = view(n) (Mod4+n); hold the bottom-left Shift + tap = move_to(n) (Mod4+Shift+n).
-        KC_LSFT, LGUI(KC_1), LGUI(KC_2), LGUI(KC_3), LGUI(KC_4), LGUI(KC_5),  LGUI(KC_6), LGUI(KC_7), LGUI(KC_8), LGUI(KC_9), XXXXXXX, XXXXXXX,
+        // oxwm tags: tap = view(n) (Mod4+n); hold the bottom-left Shift + tap = move_to(n).
+        // Right of the tags: LGUI(Q) = kill window (Mod4+Q) -- 2 keys (hold NUM + tap), no same-finger chord.
+        KC_LSFT, LGUI(KC_1), LGUI(KC_2), LGUI(KC_3), LGUI(KC_4), LGUI(KC_5),  LGUI(KC_6), LGUI(KC_7), LGUI(KC_8), LGUI(KC_9), LGUI(KC_Q), XXXXXXX,
         //|--------+--------+--------+--------+--------+--------|    |--------+--------+--------+--------+--------+--------|
                            KC_LGUI, MO(_NAV), KC_SPC,               KC_ENT,  _______, KC_BSPC),
 
