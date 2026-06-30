@@ -4,7 +4,6 @@
 
 #define MASTER_RIGHT
 
-#define TAPPING_TERM 300
 
 #ifdef RGB_MATRIX_ENABLE
 #define RGB_MATRIX_KEYPRESSES
