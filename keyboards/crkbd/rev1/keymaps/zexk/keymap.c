@@ -46,7 +46,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     [_SYS] = LAYOUT_split_3x6_3(
         //,-----------------------------------------------------.    ,-----------------------------------------------------.
-        QK_BOOT, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        QK_BOOT, EE_CLR,  XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
         //|--------+--------+--------+--------+--------+--------|    |--------+--------+--------+--------+--------+--------|
         RM_TOGG, RM_HUEU, RM_SATU, RM_VALU, RM_SPDU, XXXXXXX,     KC_MPRV, KC_VOLD, KC_MPLY, KC_VOLU, KC_MNXT, XXXXXXX,
         //|--------+--------+--------+--------+--------+--------|    |--------+--------+--------+--------+--------+--------|
